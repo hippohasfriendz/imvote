@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票控制後台</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 5vh 20px 50px 20px;
+            background-color: #000000;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-weight: 800;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            margin-top: 0;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            flex-wrap: nowrap;
+            gap: 15px;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border: none;
+            border-radius: 24px;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        .vote-count {
+            font-size: 40px;
+            font-weight: 800;
+            color: #fff;
+            margin: 15px 0;
+            transition: transform 0.1s; 
+        }
+        button {
+            cursor: pointer;
+            border-radius: 16px;
+            width: 100%;
+            display: block;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        button:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+        .add-btn {
+            background: rgba(46, 204, 113, 0.8);
+            color: white;
+            border: 1px solid rgba(46, 204, 113, 0.5);
+            font-size: 24px;
+            font-weight: bold;
+            padding: 25px 10px;
+        }
+        .add-btn:hover:not(:disabled) {
+            background: rgba(46, 204, 113, 1);
+        }
+        .sub-btn {
+            background: rgba(231, 76, 60, 0.8);
+            color: white;
+            border: 1px solid rgba(231, 76, 60, 0.5);
+            margin-top: 15px;
+            font-size: 14px;
+            padding: 10px 5px;
+        }
+        .sub-btn:hover:not(:disabled) {
+            background: rgba(231, 76, 60, 1);
+        }
+        .finish-btn {
+            background-color: #ff7675;
+            color: white;
+            font-size: 24px;
+            padding: 20px 0;
+            margin: 0;
+            font-weight: bold;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .reset-btn {
+            background-color: #2d3436;
+            color: #b2bec3;
+            font-size: 18px;
+            padding: 15px 0;
+            margin-top: 15px;
+            font-weight: bold;
+            border: 1px solid #636e72;
+            border-radius: 20px;
+            cursor: pointer;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .reset-btn:hover:not(:disabled) {
+            background-color: #636e72;
+            color: white;
+        }
+        h3 {
+            font-size: 22px;
+            font-weight: 600;
+            margin: 10px 0;
+            letter-spacing: 1px;
+        }
+        #sync-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #2ecc71;
+            box-shadow: 0 0 10px #2ecc71;
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sync-indicator"></div>
+    <h1>投票控制後台</h1>
+
+    <div class="container">
+        <div class="control-group">
+            <h3>候選人 1</h3>
+            <div class="vote-count" id="score1">0</div>
+            <button class="add-btn" onclick="updateVote('1', 'add')">+1 票</button>
+            <button class="sub-btn" onclick="updateVote('1', 'sub')">-1 票 (修改)</button>
+        </div>
+
+        <div class="control-group">
+            <h3>候選人 2</h3>
+            <div class="vote-count" id="score2">0</div>
+            <button class="add-btn" onclick="updateVote('2', 'add')">+1 票</button>
+            <button class="sub-btn" onclick="updateVote('2', 'sub')">-1 票 (修改)</button>
+        </div>
+
+        <div class="control-group">
+            <h3>無效票</h3>
+            <div class="vote-count" id="score3">0</div>
+            <button class="add-btn" onclick="updateVote('3', 'add')">+1 票</button>
+            <button class="sub-btn" onclick="updateVote('3', 'sub')">-1 票 (修改)</button>
+        </div>
+    </div>
+
+    <button id="finish-btn-id" class="finish-btn" onclick="finishVoting()">開票完成</button>
+    <button class="reset-btn" onclick="resetVoting()">重設歸零</button>
+
+    <script>
+        var apiUrl = "https://script.google.com/macros/s/AKfycbzdxYQH9WIT7sCEBpT-tYAXgRIhnegxAPMki0ozeQQDKebfPBjNssqgGlQHqeeuckeVZA/exec";
+        var votingFinished = false;
+        var pendingSync = { '1': 0, '2': 0, '3': 0 };
+        var isSyncing = false;
+        var syncTimeout = null;
+        var lastSyncTime = 0;
+
+        function fetchData() {
+            
+            if (pendingSync['1'] !== 0 || pendingSync['2'] !== 0 || pendingSync['3'] !== 0 || isSyncing || (Date.now() - lastSyncTime < 2500)) {
+                return;
+            }
+
+            fetch(apiUrl)
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    
+                    if (pendingSync['1'] !== 0 || pendingSync['2'] !== 0 || pendingSync['3'] !== 0 || isSyncing || (Date.now() - lastSyncTime < 2500)) {
+                        return;
+                    }
+
+                    document.getElementById("score1").innerText = data[0][1];
+                    document.getElementById("score2").innerText = data[1][1];
+                    document.getElementById("score3").innerText = data[2][1];
+
+                    var status = String(data[3][1]).trim();
+                    var finishBtn = document.getElementById("finish-btn-id");
+                    var voteBtns = document.querySelectorAll(".add-btn, .sub-btn");
+                    
+                    if (status === "已完成") {
+                        votingFinished = true;
+                        finishBtn.disabled = true;
+                        finishBtn.style.opacity = "0.5";
+                        finishBtn.style.cursor = "not-allowed";
+                        finishBtn.style.pointerEvents = "none";
+                        
+                        voteBtns.forEach(function(btn) {
+                            btn.disabled = true;
+                            btn.style.opacity = "0.5";
+                            btn.style.cursor = "not-allowed";
+                            btn.style.pointerEvents = "none";
+                        });
+                    } else {
+                        votingFinished = false;
+                        finishBtn.disabled = false;
+                        finishBtn.style.opacity = "1";
+                        finishBtn.style.cursor = "pointer";
+                        finishBtn.style.pointerEvents = "auto";
+                        
+                        voteBtns.forEach(function(btn) {
+                            btn.disabled = false;
+                            btn.style.opacity = "1";
+                            btn.style.cursor = "pointer";
+                            btn.style.pointerEvents = "auto";
+                        });
+                    }
+                });
+        }
+
+        function updateVote(target, action) {
+            if (votingFinished) {
+                alert("開票已完成，目前鎖定中，無法修改票數！");
+                return;
+            }
+
+            var scoreElement = document.getElementById("score" + target);
+            var currentScore = parseInt(scoreElement.innerText);
+
+            scoreElement.style.transform = "scale(1.2)";
+            setTimeout(function() { scoreElement.style.transform = "scale(1)"; }, 100);
+
+            if (action === 'add') {
+                scoreElement.innerText = currentScore + 1;
+                pendingSync[target]++;
+            } else if (action === 'sub' && currentScore > 0) {
+                scoreElement.innerText = currentScore - 1;
+                pendingSync[target]--;
+            }
+
+            document.getElementById("sync-indicator").style.backgroundColor = "#f1c40f";
+            document.getElementById("sync-indicator").style.boxShadow = "0 0 10px #f1c40f";
+
+            clearTimeout(syncTimeout);
+            syncTimeout = setTimeout(syncToGoogle, 1000);
+        }
+
+        function syncToGoogle() {
+            if (isSyncing) {
+                syncTimeout = setTimeout(syncToGoogle, 1000);
+                return;
+            }
+
+            var targetsToSync = [];
+            for (var t in pendingSync) {
+                if (pendingSync[t] !== 0) {
+                    targetsToSync.push(t);
+                }
+            }
+
+            if (targetsToSync.length === 0) {
+                document.getElementById("sync-indicator").style.backgroundColor = "#2ecc71";
+                document.getElementById("sync-indicator").style.boxShadow = "0 0 10px #2ecc71";
+                return;
+            }
+
+            var target = targetsToSync[0];
+            var amount = pendingSync[target];
+            var action = amount > 0 ? 'add' : 'sub';
+            var absoluteAmount = Math.abs(amount);
+
+            isSyncing = true;
+            document.getElementById("sync-indicator").style.backgroundColor = "#e67e22";
+            document.getElementById("sync-indicator").style.boxShadow = "0 0 10px #e67e22";
+
+            pendingSync[target] -= amount; 
+
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'target=' + target + '&action=' + action + '&amount=' + absoluteAmount
+            }).then(function(response) {
+                isSyncing = false;
+                lastSyncTime = Date.now();
+                syncToGoogle();
+            }).catch(function(error) {
+                pendingSync[target] += amount;
+                isSyncing = false;
+                document.getElementById("sync-indicator").style.backgroundColor = "#e74c3c";
+                document.getElementById("sync-indicator").style.boxShadow = "0 0 10px #e74c3c";
+            });
+        }
+
+        function finishVoting() {
+            var confirmAction = confirm("警告：確定要執行「開票完成」嗎？");
+            if (confirmAction) {
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'target=none&action=finish'
+                }).then(function() { 
+                    lastSyncTime = 0; 
+                    fetchData(); 
+                });
+            }
+        }
+
+        function resetVoting() {
+            var confirmAction = confirm("警告：確定要將所有票數歸零並重新開始嗎？");
+            if (confirmAction) {
+                pendingSync = { '1': 0, '2': 0, '3': 0 }; 
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'target=none&action=reset'
+                }).then(function() { 
+                    lastSyncTime = 0;
+                    fetchData(); 
+                });
+            }
+        }
+
+        setInterval(fetchData, 2000);
+        fetchData();
+    </script>
+</body>
+</html>

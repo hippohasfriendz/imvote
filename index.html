@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>即時開票觀看端</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 5vh 20px 50px 20px;
+            background-color: #000000;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            font-weight: 800;
+            font-size: 32px;
+            letter-spacing: 2px;
+            margin-bottom: 20px;
+            margin-top: 0;
+        }
+        #winner-banner {
+            font-size: 48px;
+            font-weight: 900;
+            color: #ffeb3b;
+            margin-bottom: 30px;
+            min-height: 60px;
+            display: none;
+        }
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            flex-wrap: nowrap;
+            gap: 20px;
+            width: 100%;
+            max-width: 1000px;
+        }
+        .candidate {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border: none;
+            border-radius: 28px;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.5);
+            padding: 30px 20px;
+            flex: 1 1 0;
+            min-width: 0;
+        }
+        h3 {
+            font-size: 22px;
+            margin: 0 0 5px 0;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        h4 {
+            font-size: 28px;
+            margin: 0 0 15px 0;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .score {
+            font-size: 64px;
+            font-weight: 900;
+            margin: 10px 0;
+            transition: transform 0.1s; 
+        }
+        #score1 { color: #ff6b81; }
+        #score2 { color: #4facfe; }
+        #score3 { color: #a4b0be; }
+        
+        #status-board {
+            margin-top: 40px;
+            font-size: 26px;
+            color: #7bed9f;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 40px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+        }
+        #stats-board {
+            margin-top: 30px;
+            color: #ffffff;
+            display: none;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(30px) saturate(150%);
+            -webkit-backdrop-filter: blur(30px) saturate(150%);
+            border: none;
+            box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.5);
+            padding: 30px 40px;
+            border-radius: 24px;
+            width: 100%;
+            max-width: 800px;
+        }
+        #total-votes-text {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+        }
+        #total-votes {
+            color: #ffdda1;
+        }
+        .bar-chart-container {
+            width: 100%;
+            height: 24px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            overflow: hidden;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+            margin-bottom: 20px;
+        }
+        .bar-segment {
+            height: 100%;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .legend-container {
+            display: flex;
+            justify-content: space-around;
+            font-size: 18px;
+            font-weight: 600;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>即時開票結果</h1>
+	<br>
+
+    <div id="winner-banner"></div>
+    
+    <div class="container">
+        <div class="candidate">
+            <h3>候選人 1</h3>
+            <h4>余晨瑄</h4>
+            <div id="score1" class="score">0</div>
+        </div>
+        <div class="candidate">
+            <h3>候選人 2</h3>
+            <h4>陳泓文</h4>
+            <div id="score2" class="score">0</div>
+        </div>
+        <div class="candidate">
+            <h3>無效票</h3>
+            <h4>o_o ?</h4>
+            <div id="score3" class="score">0</div>
+        </div>
+    </div>
+
+    <div id="status-board">目前狀態：開票中</div>
+    
+    <div id="stats-board">
+        <div id="total-votes-text">總投票數：<span id="total-votes">0</span></div>
+        
+        <div class="bar-chart-container">
+            <div id="bar1" class="bar-segment" style="background-color: #ff6b81; width: 0%;"></div>
+            <div id="bar2" class="bar-segment" style="background-color: #4facfe; width: 0%;"></div>
+            <div id="bar3" class="bar-segment" style="background-color: #a4b0be; width: 0%;"></div>
+        </div>
+
+        <div class="legend-container">
+            <div class="legend-item"><span class="dot" style="background-color: #ff6b81;"></span>余晨瑄 <span id="percent1">0</span>%</div>
+            <div class="legend-item"><span class="dot" style="background-color: #4facfe;"></span>陳泓文 <span id="percent2">0</span>%</div>
+            <div class="legend-item"><span class="dot" style="background-color: #a4b0be;"></span>無效票 <span id="percent3">0</span>%</div>
+        </div>
+    </div>
+
+    <script>
+        var apiUrl = "https://script.google.com/macros/s/AKfycbzdxYQH9WIT7sCEBpT-tYAXgRIhnegxAPMki0ozeQQDKebfPBjNssqgGlQHqeeuckeVZA/exec";
+        
+        var currentVotes = { '1': 0, '2': 0, '3': 0, 'total': 0 };
+
+        function animateNumber(elementId, start, end, duration) {
+            if (start === end) return;
+            var element = document.getElementById(elementId);
+            var startTime = null;
+
+            element.style.transform = "scale(1.1)";
+
+            function animationStep(timestamp) {
+                if (!startTime) startTime = timestamp;
+                var progress = Math.min((timestamp - startTime) / duration, 1);
+                var easeProgress = 1 - Math.pow(1 - progress, 3); 
+                var currentNumber = Math.floor(easeProgress * (end - start) + start);
+                
+                element.innerText = currentNumber;
+
+                if (progress < 1) {
+                    window.requestAnimationFrame(animationStep);
+                } else {
+                    element.innerText = end;
+                    element.style.transform = "scale(1)";
+                }
+            }
+            window.requestAnimationFrame(animationStep);
+        }
+
+        function fetchData() {
+            fetch(apiUrl)
+                .then(function(response) { return response.json(); })
+                .then(function(data) {
+                    var votes1 = parseInt(data[0][1]);
+                    var votes2 = parseInt(data[1][1]);
+                    var invalidVotes = parseInt(data[2][1]);
+                    var status = String(data[3][1]).trim();
+
+                    animateNumber("score1", currentVotes['1'], votes1, 1000);
+                    animateNumber("score2", currentVotes['2'], votes2, 1000);
+                    animateNumber("score3", currentVotes['3'], invalidVotes, 1000);
+
+                    currentVotes['1'] = votes1;
+                    currentVotes['2'] = votes2;
+                    currentVotes['3'] = invalidVotes;
+
+                    if (status === "已完成") {
+                        document.getElementById("status-board").innerText = "開票完成";
+                        document.getElementById("status-board").style.color = "#ffeb3b";
+                        
+                        var winnerBanner = document.getElementById("winner-banner");
+                        if (votes1 > votes2) {
+                            winnerBanner.innerText = "恭喜 余晨瑄 當選！";
+                        } else if (votes2 > votes1) {
+                            winnerBanner.innerText = "恭喜 陳泓文 當選！";
+                        } else {
+                            winnerBanner.innerText = "票數相同，不分勝負！";
+                        }
+                        winnerBanner.style.display = "block";
+
+                        var total = votes1 + votes2 + invalidVotes;
+                        animateNumber("total-votes", currentVotes['total'], total, 1000);
+                        currentVotes['total'] = total;
+                        
+                        if (total > 0) {
+                            var p1 = Math.round((votes1 / total) * 100);
+                            var p2 = Math.round((votes2 / total) * 100);
+                            var p3 = Math.round((invalidVotes / total) * 100);
+
+                            animateNumber("percent1", parseInt(document.getElementById("percent1").innerText), p1, 1000);
+                            animateNumber("percent2", parseInt(document.getElementById("percent2").innerText), p2, 1000);
+                            animateNumber("percent3", parseInt(document.getElementById("percent3").innerText), p3, 1000);
+
+                            document.getElementById("bar1").style.width = p1 + "%";
+                            document.getElementById("bar2").style.width = p2 + "%";
+                            document.getElementById("bar3").style.width = p3 + "%";
+                        }
+                        
+                        document.getElementById("stats-board").style.display = "block";
+                    } else {
+                        document.getElementById("status-board").innerText = "目前狀態：開票中";
+                        document.getElementById("status-board").style.color = "#7bed9f";
+                        document.getElementById("stats-board").style.display = "none";
+                        document.getElementById("winner-banner").style.display = "none";
+                        
+                        document.getElementById("bar1").style.width = "0%";
+                        document.getElementById("bar2").style.width = "0%";
+                        document.getElementById("bar3").style.width = "0%";
+                    }
+                });
+        }
+
+        setInterval(fetchData, 1000);
+        setTimeout(fetchData, 100); 
+    </script>
+</body>
+</html>
