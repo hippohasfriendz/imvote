@@ -22,14 +22,14 @@
         }
         h1 {
             font-weight: 800;
-            font-size: 32px;
+            font-size: clamp(24px, 5vw, 32px);
             letter-spacing: 2px;
             margin-bottom: 20px;
             margin-top: 0;
         }
         #winner-banner {
-            font-size: 48px;
             font-weight: 900;
+            font-size: clamp(28px, 6vw, 48px);
             color: #ffeb3b;
             margin-bottom: 30px;
             min-height: 60px;
@@ -40,7 +40,7 @@
             justify-content: center;
             align-items: stretch;
             flex-wrap: nowrap;
-            gap: 20px;
+            gap: clamp(8px, 2vw, 20px);
             width: 100%;
             max-width: 1000px;
         }
@@ -51,24 +51,24 @@
             border: none;
             border-radius: 28px;
             box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.15), 0 8px 32px rgba(0, 0, 0, 0.5);
-            padding: 30px 20px;
+            padding: clamp(15px, 3vw, 30px) clamp(10px, 2vw, 20px);
             flex: 1 1 0;
             min-width: 0;
         }
         h3 {
-            font-size: 22px;
+            font-size: clamp(14px, 3vw, 22px);
             margin: 0 0 5px 0;
             font-weight: 600;
             color: rgba(255, 255, 255, 0.9);
         }
         h4 {
-            font-size: 28px;
+            font-size: clamp(16px, 4vw, 28px);
             margin: 0 0 15px 0;
             font-weight: 700;
             color: #ffffff;
         }
         .score {
-            font-size: 64px;
+            font-size: clamp(32px, 8vw, 64px);
             font-weight: 900;
             margin: 10px 0;
             transition: transform 0.1s; 
@@ -79,11 +79,11 @@
         
         #status-board {
             margin-top: 40px;
-            font-size: 26px;
+            font-size: clamp(18px, 4vw, 26px);
             color: #7bed9f;
             font-weight: 800;
             background: rgba(255, 255, 255, 0.1);
-            padding: 10px 40px;
+            padding: 10px clamp(20px, 5vw, 40px);
             border-radius: 50px;
             backdrop-filter: blur(10px);
         }
@@ -96,13 +96,13 @@
             -webkit-backdrop-filter: blur(30px) saturate(150%);
             border: none;
             box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.5);
-            padding: 30px 40px;
+            padding: clamp(20px, 4vw, 30px) clamp(20px, 5vw, 40px);
             border-radius: 24px;
             width: 100%;
             max-width: 800px;
         }
         #total-votes-text {
-            font-size: 24px;
+            font-size: clamp(18px, 4vw, 24px);
             font-weight: 800;
             margin-bottom: 20px;
             letter-spacing: 1px;
@@ -112,7 +112,7 @@
         }
         .bar-chart-container {
             width: 100%;
-            height: 24px;
+            height: clamp(16px, 3vw, 24px);
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 12px;
             display: flex;
@@ -127,7 +127,7 @@
         .legend-container {
             display: flex;
             justify-content: space-around;
-            font-size: 18px;
+            font-size: clamp(12px, 3vw, 18px);
             font-weight: 600;
             flex-wrap: wrap;
             gap: 10px;
@@ -138,8 +138,8 @@
             gap: 8px;
         }
         .dot {
-            width: 14px;
-            height: 14px;
+            width: clamp(10px, 2vw, 14px);
+            height: clamp(10px, 2vw, 14px);
             border-radius: 50%;
             display: inline-block;
         }
@@ -148,7 +148,7 @@
 <body>
 
     <h1>即時開票結果</h1>
-	<br>
+    <br>
 
     <div id="winner-banner"></div>
     
@@ -165,7 +165,7 @@
         </div>
         <div class="candidate">
             <h3>無效票</h3>
-            <h4>o_o ?</h4>
+            <h4>誰亂投</h4>
             <div id="score3" class="score">0</div>
         </div>
     </div>
@@ -190,14 +190,19 @@
 
     <script>
         var apiUrl = "https://script.google.com/macros/s/AKfycbzdxYQH9WIT7sCEBpT-tYAXgRIhnegxAPMki0ozeQQDKebfPBjNssqgGlQHqeeuckeVZA/exec";
-        
-        var currentVotes = { '1': 0, '2': 0, '3': 0, 'total': 0 };
+        var animationIds = {}; 
 
-        function animateNumber(elementId, start, end, duration) {
-            if (start === end) return;
+        function animateNumber(elementId, end, duration) {
             var element = document.getElementById(elementId);
-            var startTime = null;
+            var start = parseInt(element.innerText) || 0;
+            
+            if (start === end) return;
 
+            if (animationIds[elementId]) {
+                cancelAnimationFrame(animationIds[elementId]);
+            }
+
+            var startTime = null;
             element.style.transform = "scale(1.1)";
 
             function animationStep(timestamp) {
@@ -209,13 +214,14 @@
                 element.innerText = currentNumber;
 
                 if (progress < 1) {
-                    window.requestAnimationFrame(animationStep);
+                    animationIds[elementId] = window.requestAnimationFrame(animationStep);
                 } else {
                     element.innerText = end;
                     element.style.transform = "scale(1)";
+                    delete animationIds[elementId]; 
                 }
             }
-            window.requestAnimationFrame(animationStep);
+            animationIds[elementId] = window.requestAnimationFrame(animationStep);
         }
 
         function fetchData() {
@@ -227,13 +233,9 @@
                     var invalidVotes = parseInt(data[2][1]);
                     var status = String(data[3][1]).trim();
 
-                    animateNumber("score1", currentVotes['1'], votes1, 1000);
-                    animateNumber("score2", currentVotes['2'], votes2, 1000);
-                    animateNumber("score3", currentVotes['3'], invalidVotes, 1000);
-
-                    currentVotes['1'] = votes1;
-                    currentVotes['2'] = votes2;
-                    currentVotes['3'] = invalidVotes;
+                    animateNumber("score1", votes1, 1000);
+                    animateNumber("score2", votes2, 1000);
+                    animateNumber("score3", invalidVotes, 1000);
 
                     if (status === "已完成") {
                         document.getElementById("status-board").innerText = "開票完成";
@@ -245,22 +247,21 @@
                         } else if (votes2 > votes1) {
                             winnerBanner.innerText = "恭喜 陳泓文 當選！";
                         } else {
-                            winnerBanner.innerText = "票數相同，不分勝負！";
+                            winnerBanner.innerText = "票數相同";
                         }
                         winnerBanner.style.display = "block";
 
                         var total = votes1 + votes2 + invalidVotes;
-                        animateNumber("total-votes", currentVotes['total'], total, 1000);
-                        currentVotes['total'] = total;
+                        animateNumber("total-votes", total, 1000);
                         
                         if (total > 0) {
                             var p1 = Math.round((votes1 / total) * 100);
                             var p2 = Math.round((votes2 / total) * 100);
                             var p3 = Math.round((invalidVotes / total) * 100);
 
-                            animateNumber("percent1", parseInt(document.getElementById("percent1").innerText), p1, 1000);
-                            animateNumber("percent2", parseInt(document.getElementById("percent2").innerText), p2, 1000);
-                            animateNumber("percent3", parseInt(document.getElementById("percent3").innerText), p3, 1000);
+                            animateNumber("percent1", p1, 1000);
+                            animateNumber("percent2", p2, 1000);
+                            animateNumber("percent3", p3, 1000);
 
                             document.getElementById("bar1").style.width = p1 + "%";
                             document.getElementById("bar2").style.width = p2 + "%";

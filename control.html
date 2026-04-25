@@ -12,7 +12,7 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
             margin: 0;
-            padding: 5vh 20px 50px 20px;
+            padding: 5vh 15px 50px 15px;
             background-color: #000000;
             color: #fff;
             min-height: 100vh;
@@ -22,8 +22,9 @@
         }
         h1 {
             font-weight: 800;
+            font-size: clamp(24px, 5vw, 32px);
             letter-spacing: 2px;
-            margin-bottom: 30px;
+            margin-bottom: clamp(15px, 4vw, 30px);
             margin-top: 0;
         }
         .container {
@@ -31,7 +32,7 @@
             justify-content: center;
             align-items: stretch;
             flex-wrap: nowrap;
-            gap: 15px;
+            gap: clamp(8px, 2vw, 15px);
             width: 100%;
             max-width: 1000px;
             margin-bottom: 20px;
@@ -41,22 +42,22 @@
             backdrop-filter: blur(30px) saturate(150%);
             -webkit-backdrop-filter: blur(30px) saturate(150%);
             border: none;
-            border-radius: 24px;
+            border-radius: clamp(12px, 3vw, 24px);
             box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.1), 0 8px 32px rgba(0, 0, 0, 0.5);
-            padding: 20px;
+            padding: clamp(10px, 3vw, 20px);
             flex: 1 1 0;
             min-width: 0;
         }
         .vote-count {
-            font-size: 40px;
+            font-size: clamp(28px, 6vw, 40px);
             font-weight: 800;
             color: #fff;
-            margin: 15px 0;
+            margin: clamp(10px, 2vw, 15px) 0;
             transition: transform 0.1s; 
         }
         button {
             cursor: pointer;
-            border-radius: 16px;
+            border-radius: clamp(8px, 2vw, 16px);
             width: 100%;
             display: block;
             transition: all 0.2s ease;
@@ -70,9 +71,9 @@
             background: rgba(46, 204, 113, 0.8);
             color: white;
             border: 1px solid rgba(46, 204, 113, 0.5);
-            font-size: 24px;
+            font-size: clamp(18px, 4vw, 24px);
             font-weight: bold;
-            padding: 25px 10px;
+            padding: clamp(15px, 4vw, 25px) clamp(5px, 1vw, 10px);
         }
         .add-btn:hover:not(:disabled) {
             background: rgba(46, 204, 113, 1);
@@ -81,9 +82,9 @@
             background: rgba(231, 76, 60, 0.8);
             color: white;
             border: 1px solid rgba(231, 76, 60, 0.5);
-            margin-top: 15px;
-            font-size: 14px;
-            padding: 10px 5px;
+            margin-top: clamp(8px, 2vw, 15px);
+            font-size: clamp(12px, 2.5vw, 14px);
+            padding: clamp(8px, 2vw, 10px) 5px;
         }
         .sub-btn:hover:not(:disabled) {
             background: rgba(231, 76, 60, 1);
@@ -91,12 +92,12 @@
         .finish-btn {
             background-color: #ff7675;
             color: white;
-            font-size: 24px;
-            padding: 20px 0;
+            font-size: clamp(20px, 4.5vw, 24px);
+            padding: clamp(15px, 3.5vw, 20px) 0;
             margin: 0;
             font-weight: bold;
             border: none;
-            border-radius: 20px;
+            border-radius: clamp(12px, 3vw, 20px);
             cursor: pointer;
             width: 100%;
             max-width: 1000px;
@@ -104,12 +105,12 @@
         .reset-btn {
             background-color: #2d3436;
             color: #b2bec3;
-            font-size: 18px;
-            padding: 15px 0;
+            font-size: clamp(16px, 3.5vw, 18px);
+            padding: clamp(12px, 3vw, 15px) 0;
             margin-top: 15px;
             font-weight: bold;
             border: 1px solid #636e72;
-            border-radius: 20px;
+            border-radius: clamp(12px, 3vw, 20px);
             cursor: pointer;
             width: 100%;
             max-width: 1000px;
@@ -119,17 +120,17 @@
             color: white;
         }
         h3 {
-            font-size: 22px;
+            font-size: clamp(14px, 3.5vw, 22px);
             font-weight: 600;
-            margin: 10px 0;
+            margin: clamp(5px, 1.5vw, 10px) 0;
             letter-spacing: 1px;
         }
         #sync-indicator {
             position: fixed;
-            top: 20px;
-            right: 20px;
-            width: 12px;
-            height: 12px;
+            top: clamp(10px, 2.5vw, 20px);
+            right: clamp(10px, 2.5vw, 20px);
+            width: clamp(8px, 2vw, 12px);
+            height: clamp(8px, 2vw, 12px);
             border-radius: 50%;
             background-color: #2ecc71;
             box-shadow: 0 0 10px #2ecc71;
@@ -144,24 +145,24 @@
 
     <div class="container">
         <div class="control-group">
-            <h3>候選人 1</h3>
+            <h3>一號</h3>
             <div class="vote-count" id="score1">0</div>
-            <button class="add-btn" onclick="updateVote('1', 'add')">+1 票</button>
-            <button class="sub-btn" onclick="updateVote('1', 'sub')">-1 票 (修改)</button>
+            <button class="add-btn" onclick="updateVote('1', 'add')">+1</button>
+            <button class="sub-btn" onclick="updateVote('1', 'sub')">-1</button>
         </div>
 
         <div class="control-group">
-            <h3>候選人 2</h3>
+            <h3>二號</h3>
             <div class="vote-count" id="score2">0</div>
-            <button class="add-btn" onclick="updateVote('2', 'add')">+1 票</button>
-            <button class="sub-btn" onclick="updateVote('2', 'sub')">-1 票 (修改)</button>
+            <button class="add-btn" onclick="updateVote('2', 'add')">+1</button>
+            <button class="sub-btn" onclick="updateVote('2', 'sub')">-1</button>
         </div>
 
         <div class="control-group">
-            <h3>無效票</h3>
+            <h3>無效</h3>
             <div class="vote-count" id="score3">0</div>
-            <button class="add-btn" onclick="updateVote('3', 'add')">+1 票</button>
-            <button class="sub-btn" onclick="updateVote('3', 'sub')">-1 票 (修改)</button>
+            <button class="add-btn" onclick="updateVote('3', 'add')">+1</button>
+            <button class="sub-btn" onclick="updateVote('3', 'sub')">-1</button>
         </div>
     </div>
 
