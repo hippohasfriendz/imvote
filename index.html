@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>即時開票觀看端</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
@@ -80,7 +78,6 @@
         #status-board {
             margin-top: 40px;
             font-size: clamp(18px, 4vw, 26px);
-            color: #7bed9f;
             font-weight: 800;
             background: rgba(255, 255, 255, 0.1);
             padding: 10px clamp(20px, 5vw, 40px);
@@ -107,9 +104,7 @@
             margin-bottom: 20px;
             letter-spacing: 1px;
         }
-        #total-votes {
-            color: #ffdda1;
-        }
+        #total-votes { color: #ffdda1; }
         .bar-chart-container {
             width: 100%;
             height: clamp(16px, 3vw, 24px);
@@ -132,11 +127,7 @@
             flex-wrap: wrap;
             gap: 10px;
         }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
+        .legend-item { display: flex; align-items: center; gap: 8px; }
         .dot {
             width: clamp(10px, 2vw, 14px);
             height: clamp(10px, 2vw, 14px);
@@ -170,7 +161,7 @@
         </div>
     </div>
 
-    <div id="status-board">目前狀態：開票中</div>
+    <div id="status-board">目前狀態：尚未開票</div>
     
     <div id="stats-board">
         <div id="total-votes-text">總投票數：<span id="total-votes">0</span></div>
@@ -197,10 +188,7 @@
             var start = parseInt(element.innerText) || 0;
             
             if (start === end) return;
-
-            if (animationIds[elementId]) {
-                cancelAnimationFrame(animationIds[elementId]);
-            }
+            if (animationIds[elementId]) { cancelAnimationFrame(animationIds[elementId]); }
 
             var startTime = null;
             element.style.transform = "scale(1.1)";
@@ -267,8 +255,17 @@
                             document.getElementById("bar2").style.width = p2 + "%";
                             document.getElementById("bar3").style.width = p3 + "%";
                         }
-                        
                         document.getElementById("stats-board").style.display = "block";
+
+                    } else if (status === "尚未開票") {
+                        document.getElementById("status-board").innerText = "目前狀態：尚未開票";
+                        document.getElementById("status-board").style.color = "#a4b0be";
+                        document.getElementById("stats-board").style.display = "none";
+                        document.getElementById("winner-banner").style.display = "none";
+                        
+                        document.getElementById("bar1").style.width = "0%";
+                        document.getElementById("bar2").style.width = "0%";
+                        document.getElementById("bar3").style.width = "0%";
                     } else {
                         document.getElementById("status-board").innerText = "目前狀態：開票中";
                         document.getElementById("status-board").style.color = "#7bed9f";

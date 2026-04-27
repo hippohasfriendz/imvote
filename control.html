@@ -5,9 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>投票控制後台</title>
     <style>
-        * {
-            box-sizing: border-box;
-        }
+        * { box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             text-align: center;
@@ -24,8 +22,14 @@
             font-weight: 800;
             font-size: clamp(24px, 5vw, 32px);
             letter-spacing: 2px;
-            margin-bottom: clamp(15px, 4vw, 30px);
+            margin-bottom: 5px;
             margin-top: 0;
+        }
+        #control-status-text {
+            font-size: clamp(16px, 4vw, 22px);
+            color: #f1c40f;
+            margin-bottom: clamp(15px, 4vw, 25px);
+            font-weight: bold;
         }
         .container {
             display: flex;
@@ -75,9 +79,7 @@
             font-weight: bold;
             padding: clamp(15px, 4vw, 25px) clamp(5px, 1vw, 10px);
         }
-        .add-btn:hover:not(:disabled) {
-            background: rgba(46, 204, 113, 1);
-        }
+        .add-btn:hover:not(:disabled) { background: rgba(46, 204, 113, 1); }
         .sub-btn {
             background: rgba(231, 76, 60, 0.8);
             color: white;
@@ -86,9 +88,26 @@
             font-size: clamp(12px, 2.5vw, 14px);
             padding: clamp(8px, 2vw, 10px) 5px;
         }
-        .sub-btn:hover:not(:disabled) {
-            background: rgba(231, 76, 60, 1);
+        .sub-btn:hover:not(:disabled) { background: rgba(231, 76, 60, 1); }
+        .status-row {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            max-width: 1000px;
+            margin-bottom: 15px;
         }
+        .status-btn {
+            color: white;
+            font-size: clamp(16px, 3.5vw, 20px);
+            padding: clamp(12px, 3vw, 15px) 0;
+            font-weight: bold;
+            border: none;
+            border-radius: clamp(12px, 3vw, 20px);
+            flex: 1;
+        }
+        .btn-not-started { background-color: #34495e; }
+        .btn-voting { background-color: #2980b9; }
+
         .finish-btn {
             background-color: #ff7675;
             color: white;
@@ -98,7 +117,6 @@
             font-weight: bold;
             border: none;
             border-radius: clamp(12px, 3vw, 20px);
-            cursor: pointer;
             width: 100%;
             max-width: 1000px;
         }
@@ -111,14 +129,10 @@
             font-weight: bold;
             border: 1px solid #636e72;
             border-radius: clamp(12px, 3vw, 20px);
-            cursor: pointer;
             width: 100%;
             max-width: 1000px;
         }
-        .reset-btn:hover:not(:disabled) {
-            background-color: #636e72;
-            color: white;
-        }
+        .reset-btn:hover:not(:disabled) { background-color: #636e72; color: white; }
         h3 {
             font-size: clamp(14px, 3.5vw, 22px);
             font-weight: 600;
@@ -142,6 +156,7 @@
 
     <div id="sync-indicator"></div>
     <h1>投票控制後台</h1>
+    <div id="control-status-text">目前狀態：連線中...</div>
 
     <div class="container">
         <div class="control-group">
@@ -150,14 +165,12 @@
             <button class="add-btn" onclick="updateVote('1', 'add')">+1</button>
             <button class="sub-btn" onclick="updateVote('1', 'sub')">-1</button>
         </div>
-
         <div class="control-group">
             <h3>二號</h3>
             <div class="vote-count" id="score2">0</div>
             <button class="add-btn" onclick="updateVote('2', 'add')">+1</button>
             <button class="sub-btn" onclick="updateVote('2', 'sub')">-1</button>
         </div>
-
         <div class="control-group">
             <h3>無效</h3>
             <div class="vote-count" id="score3">0</div>
@@ -166,46 +179,41 @@
         </div>
     </div>
 
+    <div class="status-row">
+        <button class="status-btn btn-not-started" onclick="changeState('not_started')">設定：尚未開票</button>
+        <button class="status-btn btn-voting" onclick="changeState('start_voting')">設定：開票中</button>
+    </div>
     <button id="finish-btn-id" class="finish-btn" onclick="finishVoting()">開票完成</button>
     <button class="reset-btn" onclick="resetVoting()">重設歸零</button>
 
     <script>
         var apiUrl = "https://script.google.com/macros/s/AKfycbzdxYQH9WIT7sCEBpT-tYAXgRIhnegxAPMki0ozeQQDKebfPBjNssqgGlQHqeeuckeVZA/exec";
-        var votingFinished = false;
+        var votingFinished = true; 
         var pendingSync = { '1': 0, '2': 0, '3': 0 };
         var isSyncing = false;
         var syncTimeout = null;
         var lastSyncTime = 0;
 
         function fetchData() {
-            
-            if (pendingSync['1'] !== 0 || pendingSync['2'] !== 0 || pendingSync['3'] !== 0 || isSyncing || (Date.now() - lastSyncTime < 2500)) {
-                return;
-            }
+            if (pendingSync['1'] !== 0 || pendingSync['2'] !== 0 || pendingSync['3'] !== 0 || isSyncing || (Date.now() - lastSyncTime < 2500)) return;
 
             fetch(apiUrl)
                 .then(function(response) { return response.json(); })
                 .then(function(data) {
-                    
-                    if (pendingSync['1'] !== 0 || pendingSync['2'] !== 0 || pendingSync['3'] !== 0 || isSyncing || (Date.now() - lastSyncTime < 2500)) {
-                        return;
-                    }
+                    if (pendingSync['1'] !== 0 || pendingSync['2'] !== 0 || pendingSync['3'] !== 0 || isSyncing || (Date.now() - lastSyncTime < 2500)) return;
 
                     document.getElementById("score1").innerText = data[0][1];
                     document.getElementById("score2").innerText = data[1][1];
                     document.getElementById("score3").innerText = data[2][1];
 
                     var status = String(data[3][1]).trim();
+                    document.getElementById("control-status-text").innerText = "目前狀態：" + status;
+                    
                     var finishBtn = document.getElementById("finish-btn-id");
                     var voteBtns = document.querySelectorAll(".add-btn, .sub-btn");
                     
-                    if (status === "已完成") {
+                    if (status !== "開票中") {
                         votingFinished = true;
-                        finishBtn.disabled = true;
-                        finishBtn.style.opacity = "0.5";
-                        finishBtn.style.cursor = "not-allowed";
-                        finishBtn.style.pointerEvents = "none";
-                        
                         voteBtns.forEach(function(btn) {
                             btn.disabled = true;
                             btn.style.opacity = "0.5";
@@ -214,11 +222,6 @@
                         });
                     } else {
                         votingFinished = false;
-                        finishBtn.disabled = false;
-                        finishBtn.style.opacity = "1";
-                        finishBtn.style.cursor = "pointer";
-                        finishBtn.style.pointerEvents = "auto";
-                        
                         voteBtns.forEach(function(btn) {
                             btn.disabled = false;
                             btn.style.opacity = "1";
@@ -226,12 +229,22 @@
                             btn.style.pointerEvents = "auto";
                         });
                     }
+
+                    if (status === "已完成") {
+                        finishBtn.disabled = true;
+                        finishBtn.style.opacity = "0.5";
+                        finishBtn.style.cursor = "not-allowed";
+                    } else {
+                        finishBtn.disabled = false;
+                        finishBtn.style.opacity = "1";
+                        finishBtn.style.cursor = "pointer";
+                    }
                 });
         }
 
         function updateVote(target, action) {
             if (votingFinished) {
-                alert("開票已完成，目前鎖定中，無法修改票數！");
+                alert("目前狀態非「開票中」，按鈕已鎖定！");
                 return;
             }
 
@@ -264,9 +277,7 @@
 
             var targetsToSync = [];
             for (var t in pendingSync) {
-                if (pendingSync[t] !== 0) {
-                    targetsToSync.push(t);
-                }
+                if (pendingSync[t] !== 0) { targetsToSync.push(t); }
             }
 
             if (targetsToSync.length === 0) {
@@ -288,15 +299,13 @@
 
             fetch(apiUrl, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'target=' + target + '&action=' + action + '&amount=' + absoluteAmount
-            }).then(function(response) {
+            }).then(function() {
                 isSyncing = false;
                 lastSyncTime = Date.now();
                 syncToGoogle();
-            }).catch(function(error) {
+            }).catch(function() {
                 pendingSync[target] += amount;
                 isSyncing = false;
                 document.getElementById("sync-indicator").style.backgroundColor = "#e74c3c";
@@ -304,32 +313,35 @@
             });
         }
 
+        function changeState(action) {
+            var msg = action === 'not_started' ? "確定要切換為「尚未開票」嗎？\n(此狀態下將無法加票)" : "確定要切換為「開票中」嗎？\n(此狀態將開放加票)";
+            if(confirm(msg)) {
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'target=none&action=' + action
+                }).then(function() { lastSyncTime = 0; fetchData(); });
+            }
+        }
+
         function finishVoting() {
-            var confirmAction = confirm("警告：確定要執行「開票完成」嗎？");
-            if (confirmAction) {
+            if (confirm("警告：確定要執行「開票完成」嗎？")) {
                 fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: 'target=none&action=finish'
-                }).then(function() { 
-                    lastSyncTime = 0; 
-                    fetchData(); 
-                });
+                }).then(function() { lastSyncTime = 0; fetchData(); });
             }
         }
 
         function resetVoting() {
-            var confirmAction = confirm("警告：確定要將所有票數歸零並重新開始嗎？");
-            if (confirmAction) {
+            if (confirm("警告：確定要將所有票數歸零並重設為「尚未開票」嗎？")) {
                 pendingSync = { '1': 0, '2': 0, '3': 0 }; 
                 fetch(apiUrl, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: 'target=none&action=reset'
-                }).then(function() { 
-                    lastSyncTime = 0;
-                    fetchData(); 
-                });
+                }).then(function() { lastSyncTime = 0; fetchData(); });
             }
         }
 
